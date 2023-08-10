@@ -1,7 +1,7 @@
 # IaC Lesson
 # Project solution
 # Fabio Iannone Dec 22 / UDACITY
-# Let's make it run
+# Let's make it run now
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Creates the required network infrastructure for a highly available web app
 orbs:
