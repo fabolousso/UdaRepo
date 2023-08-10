@@ -95,6 +95,12 @@ Resources:
             VolumeSize: '10'
   S3Bucket:
     Type: AWS::S3::Bucket
+    Properties: {
+       "AccessControl": "PublicRead",
+        "WebsiteConfiguration":{
+          "IndexDocument":"index.html"
+        }
+    }
   WebAppGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
