@@ -4,8 +4,6 @@
 # Let's make it run now, so get out
 AWSTemplateFormatVersion: "2010-09-09"
 Description: Creates the required network infrastructure for a highly available web app
-orbs:
-  aws-cli: circleci/aws-cli@2.0.6
 Parameters:
   ParamVPC:
     Type: String
