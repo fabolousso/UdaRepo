@@ -85,7 +85,7 @@ Resources:
           echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>This is Dirty</title></head><body>it works Udagram, Udacity</body></html>' >> index.html
       ImageId: ami-013f17f36f8b1fefb
       #The below file is commented as in real life as per Udacity recom. there shouldn't be a keypair in launch configurations
-      #KeyName: Keypair
+      KeyName: Keypair
       InstanceType: t3.medium
       SecurityGroups:
         - !Ref WebAppSecurityGroup
@@ -93,14 +93,14 @@ Resources:
         - DeviceName: "/dev/sdk"
           Ebs:
             VolumeSize: '10'
-  #S3Bucket:
-  # Type: AWS::S3::Bucket
-  #  Properties: {
-  #     "AccessControl": "PublicRead",
-  #     "WebsiteConfiguration":{
-  #        "IndexDocument":"index.html"
-  #      }
-  #  }
+  S3Bucket:
+  Type: AWS::S3::Bucket
+   Properties: {
+      "AccessControl": "PublicRead",
+      "WebsiteConfiguration":{
+         "IndexDocument":"index.html"
+       }
+   }
   WebAppGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
