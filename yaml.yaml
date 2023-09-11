@@ -60,15 +60,15 @@ Resources:
       GroupDescription: Allow HTTP/HTTPS and SSH inbound and outbound traffic
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: 80
+          FromPort: *
           ToPort: 80
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: 443
+          FromPort: *
           ToPort: 443
           CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
-          FromPort: 22
+          FromPort: *
           ToPort: 22
           CidrIp: 0.0.0.0/0
       VpcId: !Ref MainVPC
