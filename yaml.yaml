@@ -78,7 +78,6 @@ Resources:
           Value: "Pubnet 2"
       VpcId: !Ref MainVPC
 
-
   InternetGateway:
     Type: AWS::EC2::InternetGateway
 
