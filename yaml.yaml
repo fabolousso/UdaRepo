@@ -82,7 +82,7 @@ Resources:
           apt-get install apache2 -y
           systemctl start apache2.service
           cd /var/www/html
-          echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>This is Dirty</title></head><body>it works Udagram, Udacity</body></html>' >> index.html
+          echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>This is Dirty</title></head><body>it works Udagram, Udacity</body></html>' > index.html
       ImageId: ami-013f17f36f8b1fefb
       #The below file is commented as in real life as per Udacity recom. there shouldn't be a keypair in launch configurations
       KeyName: Keypair
