@@ -22,9 +22,9 @@ Resources:
   PrivateSubnetA:
     Type: AWS::EC2::Subnet
     Properties: 
+      MapPublicIpOnLaunch: true
       AvailabilityZone: 'us-east-1a'
       CidrBlock: !Ref ParamPrivnetACIDR
-      MapPublicIpOnLaunch: false
       Tags: 
         - Key: Name
           Value: "Privnet A"
@@ -35,7 +35,6 @@ Resources:
       MapPublicIpOnLaunch: true
       AvailabilityZone: 'us-east-1b'
       CidrBlock: !Ref ParamPrivnetBCIDR
-      MapPublicIpOnLaunch: false
       Tags: 
         - Key: Name
           Value: "Privnet B"
