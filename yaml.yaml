@@ -94,7 +94,10 @@ Resources:
       Tags: 
         - Key: Name
           Value: "Private Route Table"
-      VpcId: !Ref MainVPC
+      VpcId: !Ref MainVPC  ParamPrivnetACIDR:
+    Type: String
+  ParamPrivnetBCIDR:
+    Type: Stringpublic
 
     PublicRouteTable:
     Type: AWS::EC2::RouteTable
