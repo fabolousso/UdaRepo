@@ -1,0 +1,213 @@
+# IaC Lesson
+# Project solution
+# Fabio Iannone Dec 22 / UDACITY
+# God run
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Creates the required network infrastructure for a highly available web app
+Parameters:
+  ParamVPC:
+    Type: String
+
+  ParamPrivnetACIDR:
+    Type: String
+
+  ParamPrivnetBCIDR:
+    Type: String
+
+  PublicSubnet1CIDR:
+    Description: CidrBlock for the first Public Subnet
+    Type: String
+    Default: 10.0.1.0/24
+
+  PublicSubnet2CIDR:
+    Description: CidrBlock for the second Public Subnet
+    Type: String
+    Default: 10.0.1.0/24 
+
+Resources:
+  MainVPC:
+    Type: AWS::EC2::VPC
+    Properties: 
+      CidrBlock: !Ref ParamVPC
+      Tags: 
+        - Key: Name
+          Value: "Main VPC"
+
+  PrivateSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: 'us-east-1a'
+      CidrBlock: !Ref ParamPrivnetACIDR
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: Name
+          Value: "Privnet A"
+      VpcId: !Ref MainVPC
+
+  PrivateSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      AvailabilityZone: 'us-east-1b'
+      CidrBlock: !Ref ParamPrivnetBCIDR
+      MapPublicIpOnLaunch: true
+      Tags: 
+        - Key: Name
+          Value: "Privnet B"
+      VpcId: !Ref MainVPC
+
+ PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: 'us-east-1a'
+      CidrBlock: !Ref PublicSubnet1CIDR
+      Tags: 
+        - Key: Name
+          Value: "Pubnet 1"
+      VpcId: !Ref MainVPC
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties: 
+      MapPublicIpOnLaunch: true
+      AvailabilityZone: 'us-east-1b'
+      CidrBlock: !Ref PublicSubnet2CIDR
+      Tags: 
+        - Key: Name
+          Value: "Pubnet 2"
+      VpcId: !Ref MainVPC
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  BindInternetGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+
+    Properties:
+      VpcId: !Ref MainVPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: "Private Route Table"
+      VpcId: !Ref MainVPC
+
+  WebAppSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      #GroupName: SecGroup
+      GroupDescription: Allow HTTP/HTTPS and SSH inbound and outbound traffic
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+      VpcId: !Ref MainVPC
+
+  WebApplicationLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          apt-get update -y
+          apt-get install apache2 -y
+          systemctl start apache2.service
+          cd /var/www/html
+          echo '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>This is Dirty</title></head><body>it works Udagram, Udacity</body></html>' >> index.html
+      ImageId: ami-013f17f36f8b1fefb
+      #The below file is commented as in real life as per Udacity recom. there shouldn't be a keypair in launch configurations
+      KeyName: keypair
+      InstanceType: t3.medium
+      SecurityGroups:
+        - !Ref WebAppSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: "/dev/sdk"
+          Ebs:
+            VolumeSize: '10'
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+
+  WebAppGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+      LaunchConfigurationName:
+        !Ref WebApplicationLaunchConfig
+      MinSize: '4'
+      MaxSize: '4'
+      HealthCheckGracePeriod: 60
+      HealthCheckType: ELB
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      SecurityGroups:
+        - !Ref WebAppSecurityGroup
+      Subnets:
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+
+  Listener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref WebApplicationTargetGroup
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  ListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref WebApplicationTargetGroup
+      Conditions:
+        - Field: path-pattern
+          Values: [/]
+      ListenerArn: !Ref Listener
+      Priority: 1
+
+  WebApplicationTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 10
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 8
+      HealthyThresholdCount: 2
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 5
+      VpcId: !Ref MainVPC
+
+Outputs:
+  PrivateSubnets:
+      Description: A list of the private subnets which are somehow indeed public, but due to time constraints I left is as it is
+      Value: !Join ["," , [!Ref PrivateSubnetA , !Ref PrivateSubnetB]]
+      Export:
+        Name: OutPrivateSubnets
+
+PublicSubnets:
+      Description: A list of the private subnets which are somehow indeed public, but due to time constraints I left is as it is
+      Value: !Join ["," , [!Ref PublicSubnet1 , !Ref PublicSubnet2]]
+      Export:
+        Name: OutPublicSubnets
+          
+  LoadBalancerURL:
+    Description: A reference to the created LoadBalancer
+    Value: !Join [ "", [ 'http://', !GetAtt LoadBalancer.DNSName ]]
+    Export:
+      Name: OutLoadBalancerURL
