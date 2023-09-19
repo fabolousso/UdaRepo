@@ -5,7 +5,7 @@
       }, 
       {
         "ParameterKey": "ParamPrivnetACIDR",
-        "ParameterValue": "10.0.2.0/24"
+        "ParameterValue": "10.0.3.0/24"
       }, 
       {
         "ParameterKey": "ParamPrivnetBCIDR",
